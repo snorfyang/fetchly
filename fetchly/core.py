@@ -181,10 +181,26 @@ def _search_wikipedia(query: str, limit: int) -> list[dict[str, str]]:
 
 
 def search(query: str, limit: int = 8) -> dict[str, Any]:
-    """Search the web (Bing, Wikipedia fallback) and return cited results."""
-    results = _search_bing(query, limit)
-    if not results:
-        results = _search_wikipedia(query, limit)
+    """Search the web (Bing) enriched with Wikipedia citations, cited per result."""
+    wiki_quota = min(2, limit)
+    bing_limit = limit - wiki_quota  # reserve room so English queries always get a Wikipedia citation
+
+    results: list[dict[str, str]] = []
+    try:
+        results = _search_bing(query, bing_limit)
+    except Exception:  # noqa: BLE001 - fall through to Wikipedia
+        results = []
+
+    try:
+        seen = {r["url"] for r in results}
+        for w in _search_wikipedia(query, limit):
+            if w["url"] not in seen:
+                results.append(w)
+                if len(results) >= limit:
+                    break
+    except Exception:  # noqa: BLE001 - Bing results alone are still a valid answer
+        pass
+
     return {"query": query, "results": results, "count": len(results)}
 
 

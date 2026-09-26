@@ -122,8 +122,8 @@ pyproject.toml
 
 ## Notes
 
-- `search` uses the Bing HTML endpoint (en-US market) with a Wikipedia
-  fallback, so no API key is needed.
+- `search` uses the Bing HTML endpoint (en-US market), enriched with Wikipedia
+  citations, so no API key is needed.
 - `fetch` uses trafilatura + charset detection, so GBK/UTF-8 pages both come
   back clean.
 - `summarize` is extractive (keyword-frequency scoring), so it needs no LLM.
