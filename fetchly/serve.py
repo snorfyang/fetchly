@@ -89,7 +89,7 @@ class _Handler(BaseHTTPRequestHandler):
                 if not q:
                     return self._send(400, {"error": "missing q"})
                 lim = _scalar(p, "limit")
-                return self._send(200, core.research(str(q), limit=int(lim) if lim else 3))
+                return self._send(200, core.research(str(q), limit=int(lim) if lim else 3, allow_private=False))
 
             if path == "/summarize":
                 text = _scalar(p, "text")

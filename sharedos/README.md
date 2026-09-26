@@ -65,5 +65,9 @@ it is invisible and every call to it is refused by the kernel.
 | Tool namespace | `web` |
 | Tools | `web.fetch` / `web.search` / `web.research` / `web.summarize` (read), `web.post` (write, un-granted) |
 | `resolveRequirement` | derives `path: [hostname]` from the URL argument, re-checked per call |
+
+> Note: the SharedOS check authorizes the *initial* URL host. The underlying
+> CLI `fetch` follows redirects; redirect-target host re-authorization is not
+> wired through SharedOS yet (the standalone HTTP API does re-check every hop).
 | Grant | `web` / actions `fetch,search,research,summarize` / scope `descendants` / purpose `research` |
 | AccessContext | actor = `fetchly-agent`, authority/owner = `snorf`, purpose `research` |

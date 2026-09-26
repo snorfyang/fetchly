@@ -76,16 +76,20 @@ def handle_message(env: dict[str, str], seq: int, sender_id: str, sender_name: s
         return
     low = text.lower()
 
-    if any(t in low for t in PITCH_TRIGGERS):
-        pitch = open(PITCH, encoding="utf-8").read()
-        s = post(env, pitch)
-        print(f"[{seq}] pitch requested by {sender_name} -> posted pitch (seq {s})")
-        return
-
+    # Orders take precedence over pitch triggers, so an order that merely
+    # contains a word like "pitch" is still handled as an order.
     for m in ORDER_PATTERNS:
         mm = m.match(text.strip())
         if mm:
             tool, arg = mm.group(1).lower(), mm.group(2).strip()
+            auto = os.environ.get("FETCHLY_AUTO_DELIVER") == "1"
+            if not auto:
+                # Do NOT run a paid job without a payment signal. Acknowledge and
+                # leave execution + payment verification to the LLM operator,
+                # which calls deliver.py after confirming payment.
+                print(f"[{seq}] order from {sender_name}: {tool} \"{arg}\" (acknowledge only; set FETCHLY_AUTO_DELIVER=1 to auto-run)")
+                post(env, f"ORDER received from {sender_name}: {tool} \"{arg}\". I will deliver once payment is confirmed.")
+                return
             print(f"[{seq}] order from {sender_name}: {tool} \"{arg}\" -> delivering")
             r = subprocess.run(
                 [sys.executable, DELIVER, tool, arg],
@@ -96,6 +100,12 @@ def handle_message(env: dict[str, str], seq: int, sender_id: str, sender_name: s
                 post(env, f"DELIVERY FAILED for {tool} \"{arg}\": {r.stderr.strip()[:500]}")
             print(f"[{seq}] deliver exit {r.returncode}: {r.stdout.strip()[:120]}")
             return
+
+    if any(t in low for t in PITCH_TRIGGERS):
+        pitch = open(PITCH, encoding="utf-8").read()
+        s = post(env, pitch)
+        print(f"[{seq}] pitch requested by {sender_name} -> posted pitch (seq {s})")
+        return
 
 
 def main() -> int:

@@ -43,7 +43,7 @@ Bing + Wikipedia; `summarize` is extractive (no LLM, no new claims).
 | --- | --- |
 | `fetch <url>` | Clean Markdown of a page + title + extracted links |
 | `search <query>` | Web results with title / url / snippet (cited sources) |
-| `research <query>` | Search, then fetch the top pages and return clean Markdown |
+| `research <query>` | A compact research brief: cited sources + extracted key points + failed pages + summary |
 | `summarize <text-or-url>` | Extractive summary (top sentences, no API key) |
 | `mcp` | Start the MCP server so any MCP client can call the tools |
 

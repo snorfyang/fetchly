@@ -129,6 +129,16 @@ def main() -> int:
 
     if args.tool == "research":
         # A research brief, not a raw markdown dump.
+        if not result["briefs"]:
+            # Every page failed — this is a failed delivery, not a completed sale.
+            detail = "; ".join(f"{f['title']}: {f['error']}" for f in result.get("failed", []))[:400]
+            seq = post_message(
+                env,
+                f"FAILED — research \"{result['query']}\": all {len(result['failed'])} sources failed ({detail or 'no results'}). Offering a refund or a narrower query.",
+            )
+            print(f"research all-failed, posted FAILED (seq {seq})")
+            return 1
+
         md = f"# Research brief: {result['query']}\n\n"
         md += f"**Summary:** {result.get('summary', '')}\n\n## Sources\n\n"
         for h in result["sources"]:
@@ -153,6 +163,10 @@ def main() -> int:
 
     blob = json.dumps(result, ensure_ascii=False)
     label = args.input if len(args.input) <= 120 else args.input[:120] + "…"
+    if args.tool == "search" and result.get("count", 0) == 0:
+        seq = post_message(env, f"DONE — search \"{label}\" returned 0 results (valid answer, nothing invented).")
+        print(f"search returned 0 results, marked clearly (seq {seq})")
+        return 0
     inline_msg = f"DONE — {args.tool} \"{label}\": {blob}"
     if len(inline_msg.encode()) <= INLINE_LIMIT:
         seq = post_message(env, inline_msg)

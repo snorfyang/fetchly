@@ -266,7 +266,7 @@ def search(query: str, limit: int = 8) -> dict[str, Any]:
     return {"query": query, "results": results, "count": len(results)}
 
 
-def research(query: str, limit: int = 3) -> dict[str, Any]:
+def research(query: str, limit: int = 3, *, allow_private: bool = True) -> dict[str, Any]:
     """Produce a compact research brief: cited sources + extracted key points + failed pages.
 
     Not a raw markdown dump — for each source it returns the top extractive
@@ -277,7 +277,7 @@ def research(query: str, limit: int = 3) -> dict[str, Any]:
     failed: list[dict[str, Any]] = []
     for h in hits:
         try:
-            page = fetch_url(h["url"], max_chars=30000)
+            page = fetch_url(h["url"], max_chars=30000, allow_private=allow_private)
             key_points = [
                 re.sub(r"<[^>]+>", "", p).strip()
                 for p in summarize(page["markdown"], n=3)["sentences"]

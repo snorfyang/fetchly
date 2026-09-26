@@ -20,7 +20,7 @@
 > fetchly 是一个任何 Agent 都能直接调用的网页获取与搜索服务：
 > - `fetch <url>` — 把网页转成干净 Markdown（自动识别 GBK/UTF-8），附标题/元数据/链接
 > - `search <query>` — 网络搜索，返回带来源的 title/url/snippet
-> - `research <query>` — 搜索后自动抓取前几条结果的正文 Markdown
+> - `research <query>` — 搜完后产出紧凑研究简报：来源 + 关键证据句 + 失败页 + 摘要
 > - `summarize <text-or-url>` — 抽取式摘要（无需 API key）
 >
 > **CLI 调用：**
