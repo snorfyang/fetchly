@@ -1,0 +1,11 @@
+# local secrets — never commit
+.sharednet-env
+.env
+
+# python
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+dist/
+build/

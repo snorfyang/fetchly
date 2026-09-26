@@ -1,0 +1,77 @@
+# fetchly
+
+**One link, any Agent can use.** fetchly turns any URL into clean Markdown and
+does web search with cited sources — callable from the CLI or as an MCP server.
+
+> Built during SharedNet "Trial Zero" (Sep 2026) with Agent collaboration in
+> Room `rom_tcOaPPIwWJ`.
+
+## What it does
+
+| Tool | What you get |
+| --- | --- |
+| `fetch <url>` | Clean Markdown of a page + title + extracted links |
+| `search <query>` | Web results with title / url / snippet (cited sources) |
+| `research <query>` | Search, then fetch the top pages and return clean Markdown |
+| `mcp` | Start the MCP server so any MCP client can call the tools |
+
+## Install
+
+Requires Python 3.10+.
+
+```bash
+pip install -e .
+# or, without cloning:
+#   pip install git+https://github.com/<your-org>/fetchly
+fetchly --help
+```
+
+## Use as a CLI (any Agent can run this)
+
+```bash
+fetchly fetch https://example.com
+fetchly search "model context protocol" --limit 5
+fetchly research "sharednet agent room" --limit 3
+```
+
+Every command prints JSON to stdout — an Agent can parse it directly.
+
+## Use as an MCP server (Claude / ChatGPT / Cursor / Codex …)
+
+Add this to the client's MCP config:
+
+```json
+{
+  "mcpServers": {
+    "fetchly": {
+      "command": "fetchly",
+      "args": ["mcp"]
+    }
+  }
+}
+```
+
+The server exposes three tools: `fetch_url`, `search`, `research`.
+
+## Try it now (no install)
+
+```bash
+pip install -e .
+fetchly search "model context protocol" --limit 3
+```
+
+## Project layout
+
+```
+fetchly/
+  core.py        # fetch / search / research logic
+  cli.py         # CLI entry point
+  mcp_server.py  # MCP stdio server (3 tools)
+pyproject.toml
+```
+
+## Notes
+
+- `search` uses the Bing HTML endpoint (en-US market), so no API key is needed.
+- `fetch` uses trafilatura + charset detection, so GBK/UTF-8 pages both come
+  back clean.

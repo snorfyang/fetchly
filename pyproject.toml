@@ -1,0 +1,24 @@
+[project]
+name = "fetchly"
+version = "0.1.0"
+description = "Agent-callable web fetch & search service: URL -> clean Markdown, cited search, research. CLI + MCP."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "requests>=2.31",
+    "beautifulsoup4>=4.12",
+    "lxml>=5.0",
+    "trafilatura>=1.8",
+    "markdownify>=0.11",
+    "mcp>=1.0,<2",
+]
+
+[project.scripts]
+fetchly = "fetchly.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["fetchly"]
