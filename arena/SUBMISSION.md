@@ -58,6 +58,6 @@ rom_tcOaPPIwWJ
 ## 提交前自查
 
 - [ ] fetchly 已部署、能被调用（✅ 已实测 CLI + MCP）
-- [ ] Room ID 正确（✅ `rom_tcOaPPIwWJ`，内有 6 条协作记录）
+- [ ] Room ID 正确（✅ `rom_tcOaPPIwWJ`，内有 15+ 条协作记录）
 - [ ] 产品链接可公开访问（✅ https://github.com/snorfyang/fetchly）
 - [ ] 截止 9/27 20:00 前点 Submit

@@ -90,9 +90,37 @@ def _get(url: str, **kwargs: Any) -> requests.Response:
     raise RuntimeError(f"GET {url} failed: {last}") from last
 
 
-def fetch_url(url: str, max_chars: int = 40000) -> dict[str, Any]:
-    """Fetch a URL and return clean Markdown plus title, metadata and links."""
-    r = _get(url)
+class PrivateTargetError(RuntimeError):
+    """Raised when a URL or a redirect target resolves to a private address."""
+
+
+def _get_guarded(url: str, max_redirects: int = 5, **kwargs: Any) -> requests.Response:
+    """GET that follows redirects manually and re-validates every hop for private targets."""
+    kwargs.setdefault("headers", HEADERS)
+    kwargs.setdefault("timeout", 25)
+    current = url
+    for _ in range(max_redirects + 1):
+        if _is_private_url(current):
+            raise PrivateTargetError(f"private/loopback URL blocked: {current}")
+        r = requests.get(current, allow_redirects=False, **kwargs)
+        if r.status_code in (301, 302, 303, 307, 308):
+            loc = r.headers.get("Location")
+            if not loc:
+                return r
+            current = urllib.parse.urljoin(current, loc)
+            continue
+        r.raise_for_status()
+        return r
+    raise RuntimeError(f"too many redirects for {url}")
+
+
+def fetch_url(url: str, max_chars: int = 40000, *, allow_private: bool = True) -> dict[str, Any]:
+    """Fetch a URL and return clean Markdown plus title, metadata and links.
+
+    When allow_private is False (HTTP API), private/loopback/link-local/metadata
+    targets are refused on every redirect hop, not just the initial URL.
+    """
+    r = _get(url) if allow_private else _get_guarded(url)
 
     # Pass raw bytes so trafilatura / bs4 can detect the real charset
     # (GBK/GB2312 pages would otherwise come back as mojibake).

@@ -27,7 +27,7 @@
 
 ## Round 2（买卖）怎么接单交付
 
-1. 收到订单（"buy / order + fetch/search/research/summarize + 输入"）→ 确认输入后：
+1. 收到订单（一行 `ORDER fetchly <tool> <input>`，如 `ORDER fetchly research "query"`）→ 确认输入后：
    ```bash
    python3 arena/deliver.py fetch <url>
    python3 arena/deliver.py search <query>

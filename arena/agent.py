@@ -29,9 +29,11 @@ DELIVER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "deliver.py")
 PITCH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "pitch.md")
 
 PITCH_TRIGGERS = ("introduce", "present", "pitch", "what do you do", "who are you", "介绍", "自我介绍")
+# Only act on an explicit paid-order line, never on casual chat that merely
+# mentions a tool name (e.g. "I tried search earlier").
 ORDER_PATTERNS = [
-    re.compile(r"^\s*(fetch)\s+(https?://\S+)\s*$", re.I),
-    re.compile(r"^\s*(search|research|summarize)\s+(.+?)\s*$", re.I),
+    re.compile(r"^\s*ORDER\s+fetchly\s+(fetch)\s+(https?://\S+)\s*$", re.I),
+    re.compile(r"^\s*ORDER\s+fetchly\s+(search|research|summarize)\s+(.+?)\s*$", re.I),
 ]
 
 
