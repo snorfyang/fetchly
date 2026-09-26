@@ -41,5 +41,12 @@ def test_extract_links_dedupes_and_absolutizes():
     assert urls == ["https://example.com/a", "http://x/b"]
 
 
+def test_private_urls_are_detected():
+    assert core._is_private_url("http://127.0.0.1/")
+    assert core._is_private_url("http://169.254.169.254/latest/meta-data/")
+    assert core._is_private_url("http://localhost/x")
+    assert not core._is_private_url("https://example.com/")
+
+
 if __name__ == "__main__":
     raise SystemExit(pytest.main([__file__, "-v"]))

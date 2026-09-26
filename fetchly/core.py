@@ -6,7 +6,9 @@ the result directly through either the CLI or the MCP tools.
 """
 from __future__ import annotations
 
+import ipaddress
 import re
+import socket
 import urllib.parse
 from collections import Counter
 from typing import Any
@@ -48,6 +50,29 @@ def _abs(base_url: str, href: str) -> str:
     return urllib.parse.urljoin(base_url, href)
 
 
+def _is_private_url(url: str) -> bool:
+    """True if url's host resolves to a private/loopback/link-local/metadata address."""
+    host = urllib.parse.urlparse(url).hostname
+    if not host:
+        return True
+    try:
+        infos = socket.getaddrinfo(host, None)
+    except OSError:
+        return True
+    for info in infos:
+        ip = ipaddress.ip_address(info[4][0])
+        if (
+            ip.is_private
+            or ip.is_loopback
+            or ip.is_link_local
+            or ip.is_reserved
+            or ip.is_multicast
+            or ip.is_unspecified
+        ):
+            return True
+    return False
+
+
 def _get(url: str, **kwargs: Any) -> requests.Response:
     """GET with one retry and a sane timeout."""
     kwargs.setdefault("headers", HEADERS)
@@ -86,7 +111,10 @@ def fetch_url(url: str, max_chars: int = 40000) -> dict[str, Any]:
         title = t.get_text(strip=True) if t else url
 
     if not markdown:
-        markdown = _md(str(r.content, errors="replace"), heading_style="ATX") or ""
+        enc = r.encoding if r.encoding and r.encoding.lower() not in ("iso-8859-1",) else None
+        if enc is None:
+            enc = r.apparent_encoding or "utf-8"
+        markdown = _md(r.content.decode(enc, errors="replace"), heading_style="ATX") or ""
 
     if len(markdown) > max_chars:
         markdown = markdown[:max_chars] + "\n\n…[truncated by fetchly]"
@@ -125,6 +153,8 @@ def extract_links(html_bytes: bytes, base_url: str) -> list[dict[str, str]]:
 
 
 def _search_bing(query: str, limit: int) -> list[dict[str, str]]:
+    if limit <= 0:
+        return []
     r = _get(
         "https://www.bing.com/search",
         params={"q": query, "setmkt": "en-US", "cc": "US", "mkt": "en-US"},
@@ -153,7 +183,9 @@ def _search_bing(query: str, limit: int) -> list[dict[str, str]]:
     return results
 
 
-def _search_wikipedia(query: str, limit: int) -> list[dict[str, str]]:
+def _search_wikipedia(query: str, limit: int, timeout: int = 25) -> list[dict[str, str]]:
+    if limit <= 0:
+        return []
     r = _get(
         "https://en.wikipedia.org/w/api.php",
         params={
@@ -163,6 +195,7 @@ def _search_wikipedia(query: str, limit: int) -> list[dict[str, str]]:
             "srlimit": limit,
             "format": "json",
         },
+        timeout=timeout,
     )
     data = r.json()
     out: list[dict[str, str]] = []
@@ -193,7 +226,8 @@ def search(query: str, limit: int = 8) -> dict[str, Any]:
 
     try:
         seen = {r["url"] for r in results}
-        for w in _search_wikipedia(query, limit):
+        # Short timeout: Wikipedia enriches, it must never delay healthy Bing results.
+        for w in _search_wikipedia(query, limit, timeout=6):
             if w["url"] not in seen:
                 results.append(w)
                 if len(results) >= limit:

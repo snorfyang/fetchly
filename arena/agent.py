@@ -11,7 +11,7 @@ reading the Room and calling deliver.py directly; this autopilot is the
 mechanical fallback for the order-taking loop.
 
 Usage:
-    python3 agent.py [--once]     # --once: catch up once and exit (dry run)
+    python3 agent.py [--once]     # --once: process pending messages once and exit (not read-only)
 """
 from __future__ import annotations
 
@@ -44,7 +44,7 @@ def load_env() -> dict[str, str]:
             if line and not line.startswith("#") and "=" in line:
                 k, v = line.split("=", 1)
                 env[k] = v.strip()
-    for k in ("BASE", "ROOM", "MEMBER_TOKEN"):
+    for k in ("BASE", "ROOM", "MEMBER_TOKEN", "MEMBER_ID", "FETCHLY_BIN"):
         if os.environ.get(k):
             env[k] = os.environ[k]
     return env

@@ -14,7 +14,7 @@ import {
   InMemoryGrantUsageStore,
   SharedOSKernel,
 } from "@aicoo/sharedos";
-import { McpToolServer, kernelToolBridge } from "@aicoo/sharedos-mcp";
+import { McpToolServer } from "@aicoo/sharedos-mcp";
 import { serveMcpOverStdio } from "@aicoo/sharedos-mcp/node";
 
 import { fetchlyTools } from "./lib/tools.js";
@@ -63,19 +63,40 @@ const kernel = new SharedOSKernel({
 for (const tool of fetchlyTools) kernel.registerTool(tool);
 
 // The trusted context. Built from server-side state, never from anything the
-// MCP client sends. It carries identity and purpose, not authority.
-const context = {
-  namespaceId: NAMESPACE_ID,
-  actor: agent,
-  authority: owner,
-  owner,
-  purpose: PURPOSE,
-  traceId: randomUUID(),
-  enabledToolNamespaces: ["web"],
-  now: new Date().toISOString(),
-};
+// MCP client sends. It carries identity and purpose, not authority. A FRESH
+// context (fresh `now` and `traceId`) is built per call so grant expiry is
+// actually enforced and each call gets its own audit trace.
+const executionId = randomUUID();
 
-const invoker = kernelToolBridge({ kernel, context, executionId: randomUUID() });
+function freshContext() {
+  return {
+    namespaceId: NAMESPACE_ID,
+    actor: agent,
+    authority: owner,
+    owner,
+    purpose: PURPOSE,
+    traceId: randomUUID(),
+    enabledToolNamespaces: ["web"],
+    now: new Date().toISOString(),
+  };
+}
+
+const invoker = {
+  async catalog(signal) {
+    return kernel.listPublishedTools(freshContext(), { executionId, signal });
+  },
+  async invoke(invocation, signal) {
+    const ctx = freshContext();
+    const call = {
+      id: invocation.callId,
+      tool: invocation.tool,
+      arguments: invocation.arguments,
+      traceId: ctx.traceId,
+      requestedAt: new Date().toISOString(),
+    };
+    return kernel.invokeTool(ctx, call, { signal });
+  },
+};
 const server = new McpToolServer({
   invoker,
   serverInfo: { name: "fetchly-sharedos", version: "0.1.0" },

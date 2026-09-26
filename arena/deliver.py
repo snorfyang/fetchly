@@ -141,13 +141,15 @@ def main() -> int:
         return 0
 
     blob = json.dumps(result, ensure_ascii=False)
-    if len(blob.encode()) <= INLINE_LIMIT:
-        seq = post_message(env, f"DONE — {args.tool} \"{args.input}\": {blob}")
-        print(f"delivered inline JSON (seq {seq}, {len(blob.encode())} bytes)")
+    label = args.input if len(args.input) <= 120 else args.input[:120] + "…"
+    inline_msg = f"DONE — {args.tool} \"{label}\": {blob}"
+    if len(inline_msg.encode()) <= INLINE_LIMIT:
+        seq = post_message(env, inline_msg)
+        print(f"delivered inline JSON (seq {seq}, {len(inline_msg.encode())} bytes)")
     else:
         md = f"# {args.tool}: {args.input}\n\n```json\n{blob}\n```\n"
         link = upload_artifact(env, f"fetchly-{args.tool}.md", md)
-        seq = post_message(env, f"DONE — {args.tool} \"{args.input}\". Result too large for a message; artifact: {link} ({len(blob.encode())} bytes JSON).")
+        seq = post_message(env, f"DONE — {args.tool} \"{label}\". Result too large for a message; artifact: {link} ({len(blob.encode())} bytes JSON).")
         print(f"delivered as artifact (seq {seq}): {link}")
     return 0
 

@@ -74,6 +74,8 @@ class _Handler(BaseHTTPRequestHandler):
                 url = _scalar(p, "url")
                 if not url:
                     return self._send(400, {"error": "missing url"})
+                if core._is_private_url(str(url)):
+                    return self._send(403, {"error": "private/loopback URLs are blocked on the HTTP API"})
                 mc = _scalar(p, "max_chars")
                 return self._send(200, core.fetch_url(str(url), max_chars=int(mc) if mc else 40000))
 
@@ -98,6 +100,8 @@ class _Handler(BaseHTTPRequestHandler):
                 n = _scalar(p, "sentences")
                 text = str(text)
                 if text.startswith(("http://", "https://")):
+                    if core._is_private_url(text):
+                        return self._send(403, {"error": "private/loopback URLs are blocked on the HTTP API"})
                     text = core.fetch_url(text, max_chars=30000)["markdown"]
                 return self._send(200, core.summarize(text, n=int(n) if n else 5))
 
