@@ -1,0 +1,11 @@
+{
+  "name": "fetchly-sharedos",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "fetchly tools gated by SharedOS (permission-controlled agent tool access)",
+  "dependencies": {
+    "@aicoo/sharedos": "1.0.0-preview",
+    "@aicoo/sharedos-mcp": "1.0.0-preview"
+  }
+}

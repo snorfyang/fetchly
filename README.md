@@ -62,13 +62,30 @@ pip install -e .
 fetchly search "model context protocol" --limit 3
 ```
 
+## SharedOS integration (optional track)
+
+fetchly's tools are also gated by [SharedOS](https://sharedos.ai) — a
+permission layer that denies-by-default and re-authorizes every tool call.
+See [`sharedos/`](sharedos/README.md) for the kernel setup, grant, demo, and
+the MCP server (`sharedos/index.js`).
+
+```bash
+cd sharedos && npm install
+FETCHLY_BIN=../.venv/bin/fetchly node demo.js
+```
+
 ## Project layout
 
 ```
 fetchly/
-  core.py        # fetch / search / research logic
+  core.py        # fetch / search / research / summarize logic
   cli.py         # CLI entry point
-  mcp_server.py  # MCP stdio server (3 tools)
+  mcp_server.py  # MCP stdio server (4 tools)
+sharedos/
+  index.js       # fetchly tools gated by SharedOS, served over MCP
+  demo.js        # authorization demo (filtered catalog, deny-by-default)
+  lib/tools.js   # SharedOS tool handlers
+  lib/runner.js  # shells out to the fetchly CLI
 pyproject.toml
 ```
 
