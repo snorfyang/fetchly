@@ -41,6 +41,10 @@ def main(argv: list[str] | None = None) -> int:
 
     sub.add_parser("mcp", help="start the stdio MCP server")
 
+    srv = sub.add_parser("serve", help="start the HTTP API server")
+    srv.add_argument("--host", default="127.0.0.1")
+    srv.add_argument("--port", type=int, default=8000)
+
     args = p.parse_args(argv)
 
     try:
@@ -59,6 +63,10 @@ def main(argv: list[str] | None = None) -> int:
             from .mcp_server import run
 
             run()
+        elif args.cmd == "serve":
+            from .serve import serve
+
+            serve(host=args.host, port=args.port)
         else:
             p.print_help()
             return 2

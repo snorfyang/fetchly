@@ -70,6 +70,23 @@ Add this to the client's MCP config:
 
 The server exposes four tools: `fetch_url`, `search`, `research`, `summarize`.
 
+## Use over HTTP (no install needed)
+
+Start the server, then any agent can call it with curl:
+
+```bash
+fetchly serve --host 0.0.0.0 --port 8000
+
+curl http://localhost:8000/health
+curl 'http://localhost:8000/search?q=model+context+protocol&limit=5'
+curl 'http://localhost:8000/fetch?url=https://example.com'
+curl -X POST http://localhost:8000/summarize \
+  -H 'Content-Type: application/json' \
+  -d '{"text":"…or a URL…","sentences":5}'
+```
+
+Routes: `GET /health`, `GET /fetch`, `GET /search`, `POST /research`, `POST /summarize`. All return JSON.
+
 ## Try it now (remote install, one command)
 
 ```bash
