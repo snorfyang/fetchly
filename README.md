@@ -78,7 +78,7 @@ directly. Exact shapes:
 
 - `fetch` -> `{url, title, markdown, author, date, description, language, site, links, link_count}` (metadata may be null, markdown may be truncated)
 - `search` -> `{query, results: [{source, title, url, snippet}], count}`
-- `research` -> `{query, results, pages: [{title, url, markdown} | {title, url, error}]}`
+- `research` -> `{query, sources, briefs: [{title, url, source, key_points, preview}], failed: [{title, url, error}], summary}` (a compact brief: extracted evidence per source, failed pages flagged, extractive summary — not a raw dump)
 - `summarize` -> `{sentences, summary}`
 
 `fetchly mcp` is the exception: it starts a persistent stdio server, not a JSON

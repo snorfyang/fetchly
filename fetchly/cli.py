@@ -31,7 +31,7 @@ def main(argv: list[str] | None = None) -> int:
     s.add_argument("query")
     s.add_argument("--limit", type=int, default=8)
 
-    r = sub.add_parser("research", help="search then fetch top pages")
+    r = sub.add_parser("research", help="search then produce a compact research brief")
     r.add_argument("query")
     r.add_argument("--limit", type=int, default=3)
 

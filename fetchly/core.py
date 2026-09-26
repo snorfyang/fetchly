@@ -267,22 +267,42 @@ def search(query: str, limit: int = 8) -> dict[str, Any]:
 
 
 def research(query: str, limit: int = 3) -> dict[str, Any]:
-    """Search then fetch the top results, returning snippets plus clean markdown."""
+    """Produce a compact research brief: cited sources + extracted key points + failed pages.
+
+    Not a raw markdown dump — for each source it returns the top extractive
+    sentences (evidence) plus a short preview, and flags pages that failed.
+    """
     hits = search(query, limit=limit)["results"]
-    pages: list[dict[str, Any]] = []
+    briefs: list[dict[str, Any]] = []
+    failed: list[dict[str, Any]] = []
     for h in hits:
         try:
-            page = fetch_url(h["url"], max_chars=12000)
-            pages.append(
+            page = fetch_url(h["url"], max_chars=30000)
+            key_points = [
+                re.sub(r"<[^>]+>", "", p).strip()
+                for p in summarize(page["markdown"], n=3)["sentences"]
+            ]
+            key_points = [p for p in key_points if p]
+            briefs.append(
                 {
                     "title": h["title"],
                     "url": h["url"],
-                    "markdown": page["markdown"],
+                    "source": h.get("source"),
+                    "key_points": key_points,
+                    "preview": page["markdown"][:600],
                 }
             )
-        except Exception as exc:  # noqa: BLE001 - keep going on any single failure
-            pages.append({"title": h["title"], "url": h["url"], "error": str(exc)})
-    return {"query": query, "results": hits, "pages": pages}
+        except Exception as exc:  # noqa: BLE001 - flag the page and keep going
+            failed.append({"title": h["title"], "url": h["url"], "error": str(exc)})
+
+    summary = " ".join(p for b in briefs for p in b["key_points"])
+    return {
+        "query": query,
+        "sources": hits,
+        "briefs": briefs,
+        "failed": failed,
+        "summary": summary,
+    }
 
 
 def _sentences(text: str) -> list[str]:

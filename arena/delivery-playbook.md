@@ -81,7 +81,7 @@ Output: `{query, results: [{source, title, url, snippet}], count}`.
 "$FETCHLY" research "sharednet agent room" --limit 3
 ```
 
-Output: `{query, results, pages: [{title, url, markdown} | {title, url, error}]}`. A page may fail without failing the job — return the partial `error` and say so.
+Output: `{query, sources, briefs: [{title, url, source, key_points, preview}], failed: [{title, url, error}], summary}`. A page may fail without failing the job — it is listed under `failed` and the rest still deliver.
 
 ### 2d. summarize
 

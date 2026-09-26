@@ -5,7 +5,7 @@ Cursor, Codex, etc. can call fetchly directly:
 
     fetch_url(url, max_chars)   -> {title, markdown, links, link_count, ...}
     search(query, limit)        -> {query, results, count}
-    research(query, limit)      -> {query, results, pages}
+    research(query, limit)      -> {query, sources, briefs, failed, summary}  (research brief)
     summarize(text, sentences)  -> {sentences, summary}
 """
 from __future__ import annotations
@@ -30,7 +30,7 @@ def run() -> None:
 
     @mcp.tool()
     def research(query: str, limit: int = 3) -> dict:
-        """Search the web then fetch the top pages, returning snippets plus clean Markdown."""
+        """Produce a compact research brief: cited sources, extracted key points per source, failed pages, and an extractive summary."""
         return core.research(query, limit=limit)
 
     @mcp.tool()

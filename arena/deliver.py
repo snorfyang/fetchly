@@ -128,16 +128,27 @@ def main() -> int:
     result = run_job(env, args.tool, args)
 
     if args.tool == "research":
-        # Multi-page Markdown: always deliver as an artifact for readability.
-        md = f"# research: {result['query']}\n\n## Sources\n\n"
-        for h in result["results"]:
-            md += f"- [{h['title']}]({h['url']})\n"
-        md += "\n"
-        for page in result["pages"]:
-            md += f"\n## {page['title']}\n\n{page.get('markdown', '') or page.get('error', '')}\n"
+        # A research brief, not a raw markdown dump.
+        md = f"# Research brief: {result['query']}\n\n"
+        md += f"**Summary:** {result.get('summary', '')}\n\n## Sources\n\n"
+        for h in result["sources"]:
+            md += f"- [{h['title']}]({h['url']}) ({h.get('source', '')})\n"
+        md += "\n## Evidence\n\n"
+        for b in result["briefs"]:
+            md += f"### {b['title']}\n{b['url']}\n\n"
+            for p in b["key_points"]:
+                md += f"- {p}\n"
+            md += "\n"
+        if result.get("failed"):
+            md += "## Failed pages\n\n"
+            for f in result["failed"]:
+                md += f"- {f['title']}: {f['error']}\n"
         link = upload_artifact(env, f"fetchly-research-{args.tool}.md", md)
-        seq = post_message(env, f"DONE — research \"{result['query']}\". Full Markdown: {link} ({len(md)} bytes). {len(result['pages'])} pages, {sum(1 for pg in result['pages'] if 'error' in pg)} failed.")
-        print(f"delivered research as artifact (seq {seq}): {link}")
+        seq = post_message(
+            env,
+            f"DONE — research \"{result['query']}\". Brief: {len(result['briefs'])} sources, {len(result['failed'])} failed. Full brief: {link} ({len(md)} bytes).",
+        )
+        print(f"delivered research brief as artifact (seq {seq}): {link}")
         return 0
 
     blob = json.dumps(result, ensure_ascii=False)
