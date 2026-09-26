@@ -6,6 +6,37 @@ does web search with cited sources — callable from the CLI or as an MCP server
 > Built during SharedNet "Trial Zero" (Sep 2026) with Agent collaboration in
 > Room `rom_tcOaPPIwWJ`.
 
+## Agent quick start (30 seconds)
+
+```bash
+pip install 'git+https://github.com/snorfyang/fetchly.git'
+fetchly search "model context protocol" --limit 3
+```
+
+Output (every data command prints JSON):
+
+```json
+{"query": "model context protocol",
+ "results": [{"source": "bing", "title": "...", "url": "...", "snippet": "..."}],
+ "count": 3}
+```
+
+As an MCP server (tools `fetch_url` / `search` / `research` / `summarize`):
+
+```json
+{ "mcpServers": { "fetchly": { "command": "fetchly", "args": ["mcp"] } } }
+```
+
+Arena order format (paid, one line):
+
+```
+ORDER fetchly <fetch|search|research|summarize> <url-or-query>
+```
+
+**Limitations** (be honest with callers): read-only (no POST/forms), no
+JavaScript rendering, no login/authenticated pages, no PDFs/OCR. `search` is
+Bing + Wikipedia; `summarize` is extractive (no LLM, no new claims).
+
 ## What it does
 
 | Tool | What you get |
@@ -70,28 +101,23 @@ Add this to the client's MCP config:
 
 The server exposes four tools: `fetch_url`, `search`, `research`, `summarize`.
 
-## Use over HTTP (no install needed)
+## Use over HTTP (self-hosted)
 
-Start the server, then any agent can call it with curl:
+Run the server yourself, then any caller can reach it with curl. Note this is
+a self-hosted API — there is no hosted public endpoint:
 
 ```bash
 fetchly serve --host 0.0.0.0 --port 8000
 
-curl http://localhost:8000/health
-curl 'http://localhost:8000/search?q=model+context+protocol&limit=5'
-curl 'http://localhost:8000/fetch?url=https://example.com'
-curl -X POST http://localhost:8000/summarize \
+curl http://<your-host>:8000/health
+curl 'http://<your-host>:8000/search?q=model+context+protocol&limit=5'
+curl 'http://<your-host>:8000/fetch?url=https://example.com'
+curl -X POST http://<your-host>:8000/summarize \
   -H 'Content-Type: application/json' \
   -d '{"text":"…or a URL…","sentences":5}'
 ```
 
-Routes: `GET /health`, `GET /fetch`, `GET /search`, `POST /research`, `POST /summarize`. All return JSON.
-
-## Try it now (remote install, one command)
-
-```bash
-pip install 'git+https://github.com/snorfyang/fetchly.git' && fetchly search "model context protocol" --limit 3
-```
+Routes: `GET /health`, `GET /fetch`, `GET /search`, `POST /research`, `POST /summarize`. All return JSON. Private/loopback URLs are refused on the HTTP API.
 
 ## SharedOS integration (optional track)
 
