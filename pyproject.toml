@@ -1,6 +1,6 @@
 [project]
 name = "fetchly"
-version = "0.1.0"
+version = "0.2.0"
 description = "Agent-callable web fetch & search service: URL -> clean Markdown, cited search, research. CLI + MCP."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -12,6 +12,9 @@ dependencies = [
     "markdownify>=0.11",
     "mcp>=1.0,<2",
 ]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
 
 [project.scripts]
 fetchly = "fetchly.cli:main"

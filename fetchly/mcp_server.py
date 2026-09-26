@@ -32,6 +32,13 @@ def run() -> None:
         """Search the web then fetch the top pages, returning snippets plus clean Markdown."""
         return core.research(query, limit=limit)
 
+    @mcp.tool()
+    def summarize(text: str, sentences: int = 5) -> dict:
+        """Return an extractive summary of text (top sentences by keyword frequency, in order)."""
+        if text.startswith(("http://", "https://")):
+            text = core.fetch_url(text, max_chars=30000)["markdown"]
+        return core.summarize(text, n=sentences)
+
     mcp.run()
 
 

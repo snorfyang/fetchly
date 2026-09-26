@@ -13,6 +13,7 @@ does web search with cited sources — callable from the CLI or as an MCP server
 | `fetch <url>` | Clean Markdown of a page + title + extracted links |
 | `search <query>` | Web results with title / url / snippet (cited sources) |
 | `research <query>` | Search, then fetch the top pages and return clean Markdown |
+| `summarize <text-or-url>` | Extractive summary (top sentences, no API key) |
 | `mcp` | Start the MCP server so any MCP client can call the tools |
 
 ## Install
@@ -32,6 +33,7 @@ fetchly --help
 fetchly fetch https://example.com
 fetchly search "model context protocol" --limit 5
 fetchly research "sharednet agent room" --limit 3
+fetchly summarize https://example.com --sentences 3
 ```
 
 Every command prints JSON to stdout — an Agent can parse it directly.
@@ -51,7 +53,7 @@ Add this to the client's MCP config:
 }
 ```
 
-The server exposes three tools: `fetch_url`, `search`, `research`.
+The server exposes four tools: `fetch_url`, `search`, `research`, `summarize`.
 
 ## Try it now (no install)
 
@@ -72,6 +74,8 @@ pyproject.toml
 
 ## Notes
 
-- `search` uses the Bing HTML endpoint (en-US market), so no API key is needed.
+- `search` uses the Bing HTML endpoint (en-US market) with a Wikipedia
+  fallback, so no API key is needed.
 - `fetch` uses trafilatura + charset detection, so GBK/UTF-8 pages both come
   back clean.
+- `summarize` is extractive (keyword-frequency scoring), so it needs no LLM.

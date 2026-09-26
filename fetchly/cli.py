@@ -35,6 +35,10 @@ def main(argv: list[str] | None = None) -> int:
     r.add_argument("query")
     r.add_argument("--limit", type=int, default=3)
 
+    z = sub.add_parser("summarize", help="extractive summary of text (or a URL)")
+    z.add_argument("text_or_url")
+    z.add_argument("--sentences", type=int, default=5)
+
     sub.add_parser("mcp", help="start the stdio MCP server")
 
     args = p.parse_args(argv)
@@ -46,6 +50,11 @@ def main(argv: list[str] | None = None) -> int:
             _out(core.search(args.query, limit=args.limit))
         elif args.cmd == "research":
             _out(core.research(args.query, limit=args.limit))
+        elif args.cmd == "summarize":
+            text = args.text_or_url
+            if text.startswith(("http://", "https://")):
+                text = core.fetch_url(text, max_chars=30000)["markdown"]
+            _out(core.summarize(text, n=args.sentences))
         elif args.cmd == "mcp":
             from .mcp_server import run
 
