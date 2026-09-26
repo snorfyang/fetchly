@@ -1,11 +1,12 @@
 """fetchly MCP server (stdio).
 
-Exposes three tools over the Model Context Protocol so Claude, ChatGPT,
+Exposes four tools over the Model Context Protocol so Claude, ChatGPT,
 Cursor, Codex, etc. can call fetchly directly:
 
-    fetch_url(url, max_chars)   -> {title, markdown, links, link_count}
-    search(query, limit)        -> [{title, url, snippet}]
+    fetch_url(url, max_chars)   -> {title, markdown, links, link_count, ...}
+    search(query, limit)        -> {query, results, count}
     research(query, limit)      -> {query, results, pages}
+    summarize(text, sentences)  -> {sentences, summary}
 """
 from __future__ import annotations
 

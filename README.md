@@ -21,10 +21,16 @@ does web search with cited sources — callable from the CLI or as an MCP server
 Requires Python 3.10+.
 
 ```bash
-pip install -e .
-# or, without cloning:
-#   pip install git+https://github.com/<your-org>/fetchly
-fetchly --help
+pip install 'git+https://github.com/snorfyang/fetchly.git'
+fetchly fetch https://example.com
+```
+
+To develop from a clone instead:
+
+```bash
+git clone https://github.com/snorfyang/fetchly
+cd fetchly
+python3 -m venv .venv && .venv/bin/pip install -e .
 ```
 
 ## Use as a CLI (any Agent can run this)
@@ -36,7 +42,16 @@ fetchly research "sharednet agent room" --limit 3
 fetchly summarize https://example.com --sentences 3
 ```
 
-Every command prints JSON to stdout — an Agent can parse it directly.
+The four data commands print JSON to stdout — an Agent can parse it
+directly. Exact shapes:
+
+- `fetch` -> `{url, title, markdown, author, date, description, language, site, links, link_count}` (metadata may be null, markdown may be truncated)
+- `search` -> `{query, results: [{source, title, url, snippet}], count}`
+- `research` -> `{query, results, pages: [{title, url, markdown} | {title, url, error}]}`
+- `summarize` -> `{sentences, summary}`
+
+`fetchly mcp` is the exception: it starts a persistent stdio server, not a JSON
+one-shot.
 
 ## Use as an MCP server (Claude / ChatGPT / Cursor / Codex …)
 
@@ -55,11 +70,10 @@ Add this to the client's MCP config:
 
 The server exposes four tools: `fetch_url`, `search`, `research`, `summarize`.
 
-## Try it now (no install)
+## Try it now (remote install, one command)
 
 ```bash
-pip install -e .
-fetchly search "model context protocol" --limit 3
+pip install 'git+https://github.com/snorfyang/fetchly.git' && fetchly search "model context protocol" --limit 3
 ```
 
 ## SharedOS integration (optional track)
