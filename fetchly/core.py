@@ -242,28 +242,39 @@ def _search_wikipedia(query: str, limit: int, timeout: int = 25) -> list[dict[st
 
 
 def search(query: str, limit: int = 8) -> dict[str, Any]:
-    """Search the web (Bing) enriched with Wikipedia citations, cited per result."""
+    """Search the web (Bing) enriched with Wikipedia citations, cited per result.
+
+    The `backends` field states per-backend availability so a Wikipedia-only
+    result set can never masquerade as a successful multi-source search.
+    """
     wiki_quota = min(2, limit)
     bing_limit = limit - wiki_quota  # reserve room so English queries always get a Wikipedia citation
 
     results: list[dict[str, str]] = []
+    backends: dict[str, Any] = {}
+
     try:
-        results = _search_bing(query, bing_limit)
-    except Exception:  # noqa: BLE001 - fall through to Wikipedia
-        results = []
+        bing = _search_bing(query, bing_limit)
+        backends["bing"] = {"status": "ok" if bing else "empty", "count": len(bing)}
+        results = bing
+    except Exception as exc:  # noqa: BLE001 - fall through to Wikipedia
+        backends["bing"] = {"status": "failed", "error": str(exc)[:120]}
 
     try:
         seen = {r["url"] for r in results}
+        wiki = []
         # Short timeout: Wikipedia enriches, it must never delay healthy Bing results.
         for w in _search_wikipedia(query, limit, timeout=6):
             if w["url"] not in seen:
+                wiki.append(w)
                 results.append(w)
                 if len(results) >= limit:
                     break
-    except Exception:  # noqa: BLE001 - Bing results alone are still a valid answer
-        pass
+        backends["wikipedia"] = {"status": "ok" if wiki else "empty", "count": len(wiki)}
+    except Exception as exc:  # noqa: BLE001 - Bing results alone are still a valid answer
+        backends["wikipedia"] = {"status": "failed", "error": str(exc)[:120]}
 
-    return {"query": query, "results": results, "count": len(results)}
+    return {"query": query, "results": results, "count": len(results), "backends": backends}
 
 
 def research(query: str, limit: int = 3, *, allow_private: bool = True) -> dict[str, Any]:
