@@ -38,6 +38,13 @@ class _Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    @staticmethod
+    def _with_help(obj: Any) -> Any:
+        """Make a data response self-describing for cold-starting agents."""
+        if isinstance(obj, dict):
+            obj.setdefault("help", "fetchly HTTP API — full usage at GET /")
+        return obj
+
     def _params(self) -> dict[str, Any]:
         parsed = urlparse(self.path)
         params: dict[str, Any] = {}
@@ -75,21 +82,21 @@ class _Handler(BaseHTTPRequestHandler):
                 if not url:
                     return self._send(400, {"error": "missing url"})
                 mc = _scalar(p, "max_chars")
-                return self._send(200, core.fetch_url(str(url), max_chars=int(mc) if mc else 40000, allow_private=False))
+                return self._send(200, self._with_help(core.fetch_url(str(url), max_chars=int(mc) if mc else 40000, allow_private=False)))
 
             if path == "/search":
                 q = _scalar(p, "q") or _scalar(p, "query")
                 if not q:
                     return self._send(400, {"error": "missing q"})
                 lim = _scalar(p, "limit")
-                return self._send(200, core.search(str(q), limit=int(lim) if lim else 8))
+                return self._send(200, self._with_help(core.search(str(q), limit=int(lim) if lim else 8)))
 
             if path == "/research":
                 q = _scalar(p, "q") or _scalar(p, "query")
                 if not q:
                     return self._send(400, {"error": "missing q"})
                 lim = _scalar(p, "limit")
-                return self._send(200, core.research(str(q), limit=int(lim) if lim else 3, allow_private=False))
+                return self._send(200, self._with_help(core.research(str(q), limit=int(lim) if lim else 3, allow_private=False)))
 
             if path == "/summarize":
                 text = _scalar(p, "text")
@@ -99,7 +106,7 @@ class _Handler(BaseHTTPRequestHandler):
                 text = str(text)
                 if text.startswith(("http://", "https://")):
                     text = core.fetch_url(text, max_chars=30000, allow_private=False)["markdown"]
-                return self._send(200, core.summarize(text, n=int(n) if n else 5))
+                return self._send(200, self._with_help(core.summarize(text, n=int(n) if n else 5)))
 
             return self._send(404, {"error": f"unknown route {path}"})
 
