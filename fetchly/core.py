@@ -278,11 +278,12 @@ def research(query: str, limit: int = 3, *, allow_private: bool = True) -> dict[
     for h in hits:
         try:
             page = fetch_url(h["url"], max_chars=30000, allow_private=allow_private)
-            key_points = [
-                re.sub(r"<[^>]+>", "", p).strip()
-                for p in summarize(page["markdown"], n=3)["sentences"]
-            ]
-            key_points = [p for p in key_points if p]
+            key_points = []
+            for p in summarize(page["markdown"], n=3)["sentences"]:
+                cp = re.sub(r"<[^>]+>", "", p).strip()
+                cp = re.sub(r"^\s*[*_]{1,3}|[*_]{1,3}\s*$", "", cp).strip()
+                if len(cp) >= 40:  # drop heading fragments and emphasis-only noise
+                    key_points.append(cp)
             briefs.append(
                 {
                     "title": h["title"],
@@ -306,9 +307,16 @@ def research(query: str, limit: int = 3, *, allow_private: bool = True) -> dict[
 
 
 def _sentences(text: str) -> list[str]:
-    # split on sentence boundaries, keep the boundary chars out
-    parts = re.split(r"(?<=[.!?。！？])\s+", text.strip())
-    return [p.strip() for p in parts if len(p.strip()) > 20]
+    # Split into paragraph blocks first so markdown headings become their own
+    # (droppable) unit instead of being prepended to the following sentence.
+    out: list[str] = []
+    for block in re.split(r"\n\s*\n", text.strip()):
+        block = re.sub(r"^\s*#{1,6}\s*", "", block).strip()
+        if not block:
+            continue
+        parts = re.split(r"(?<=[.!?。！？])\s+", block)
+        out.extend(p.strip() for p in parts if len(p.strip()) > 20)
+    return out
 
 
 def summarize(text: str, n: int = 5) -> dict[str, Any]:
