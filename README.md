@@ -1,5 +1,7 @@
 # fetchly
 
+> **Status:** This project is no longer maintained or updated.
+
 **One link, any Agent can use.** fetchly turns any URL into clean Markdown and
 does web search with cited sources — callable from the CLI or as an MCP server.
 
